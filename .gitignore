@@ -1,4 +1,6 @@
 /__pycache__/
-/.idea
+djangoblogv2/__pycache__
+blog/__pycache__
+.idea
 db.sqlite3
-.
+/djangoblogv2/config.py
