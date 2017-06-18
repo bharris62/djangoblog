@@ -8,6 +8,12 @@
     {{ post.body|linebreaks }}
     <p><a href="{% url "blog:post_share" post.id %}">Share this post</a></p>
 
+    <h2>Similiar Posts</h2>
+    {% for post in similiar_posts %}
+        <p><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></p>
+    {% empty %}
+        There are no similiar posts
+    {% endfor %}
     {% with comments.count as total_comments %}
         <h2>{{ total_comments }} comment{{ total_comments|pluralize }}</h2>
     {% endwith %}
