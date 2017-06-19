@@ -1,16 +1,16 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Post, Comment
-from .forms import EmailPostForm, CommentForm
+from .forms import EmailPostForm, CommentForm, SearchForm
 from django.core.mail import send_mail
 from djangoblogv2.settings import EMAIL
 from taggit.models import Tag
-from django.db.models import Count
+from django.db.models import Count, Q
 # Create your views here.
 
 def post_list(request, tag_slug=None):
     object_list = Post.published.all()
-
+    search=False
     tag=None
     if tag_slug:
         tag = get_object_or_404(Tag, slug=tag_slug)
@@ -18,7 +18,19 @@ def post_list(request, tag_slug=None):
 
     paginator = Paginator(object_list, 3)
     page = request.GET.get('page')
-
+    search_form = SearchForm()
+    if request.method == 'POST':
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            searched_posts = Post.published.filter(Q(title__icontains=data['search_field']) and Q(body__icontains=data['search_field']))
+            if searched_posts.count() > 0:
+                search = True
+        return render(request, 'blog/post/list.html', {'page': page,
+                                                       'tag': tag,
+                                                       'search_form': search_form,
+                                                       'search': search,
+                                                       'searched_posts': searched_posts})
     try:
         posts = paginator.page(page)
     except PageNotAnInteger:
@@ -28,7 +40,9 @@ def post_list(request, tag_slug=None):
 
     return render(request, 'blog/post/list.html', {'page': page,
                                                    'posts': posts,
-                                                   'tag': tag})
+                                                   'tag': tag,
+                                                   'search_form': search_form,
+                                                   'search': search,})
 
 
 def post_detail(request, year, month, day, post):
